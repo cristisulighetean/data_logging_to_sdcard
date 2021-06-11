@@ -3,7 +3,7 @@
 // SEN0257  parameter
 #define SEN0257PIN A0
 const float offSet = 0.483 ;
-float voltage, pressure1, pressure2;
+float voltage, pressure;
 
 void setup(){
 
