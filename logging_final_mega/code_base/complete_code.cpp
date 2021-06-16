@@ -24,9 +24,18 @@ void flow () // Interrupt function for flow sensor
    flow_frequency++;
 }
 
-// Switch 
-int switch_pin = 21; 
-int led_pin = 22;
+// Switch setup
+const int switch_pin = 21; 
+const int led_pin = 22;
+
+// Variables
+int ledState = HIGH;
+int buttonState;
+int lastButtonState;
+
+
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
 /* Pins for SD card SPI
   CS - 53
@@ -75,6 +84,12 @@ void getFlowData(void);
 
 void setup() {
 
+    pinMode(switch_pin, INPUT);
+    pinMode(led_pin, OUTPUT);
+
+    // set initial LED state
+    digitalWrite(led_pin, ledState);
+
 #ifdef DEBUG 
     // Open serial communications and wait for port to open:
     Serial.begin(115200);
@@ -82,9 +97,8 @@ void setup() {
         ; // wait for serial port to connect. Needed for native USB port only
     }
     delay(2000);
-#endif
 
-/*
+
     Serial.println("DataLogging from Thermocuples");
 
     // Init SD Card
@@ -101,7 +115,7 @@ void setup() {
     Serial.println("initialization done.");
 #endif
 
-*/
+
     // Flow sensor setup
     pinMode(flowsensor, INPUT);
     digitalWrite(flowsensor, HIGH);   // Optional Internal Pull-Up
@@ -112,31 +126,58 @@ void setup() {
     currentTime = millis();
     cloopTime = currentTime;
 
-    // Switch
-    pinMode(switch_pin, INPUT);
-
-    // Led
-    pinMode(led_pin, OUTPUT);
-    digitalWrite(led_pin, LOW);
-
 }
 void loop() {
-  
-  if (digitalRead(switch_pin) == 1){
-    // turn on LED
-    digitalWrite(led_pin, HIGH);
-    
-    currentTime = millis();
-    cloopTime = currentTime;
 
-    // Every second, make a request
-    if(currentTime >= (cloopTime + 1000))
-    {
-        cloopTime = currentTime; // Updates cloopTime
-        writeData(); 
+    // Switch setup
+    // Read the state of the switch into a local variable:
+    int reading = digitalRead(switch_pin);
+
+    // Check to see if you just pressed the button
+    // (i.e. the input went from LOW to HIGH), and you've waited long enough
+    // since the last press to ignore any noise:
+
+    // If the switch changed, due to noise or pressing:
+    if (reading != lastButtonState) {
+        // reset the debouncing timer
+        lastDebounceTime = millis();
     }
-  }
-  else {digitalWrite(led_pin, LOW);}
+
+    if ((millis() - lastDebounceTime) > debounceDelay) {
+        // whatever the reading is at, it's been there for longer than the debounce
+        // delay, so take it as the actual current state:
+
+        // if the button state has changed:
+        if (reading != buttonState) {
+            buttonState = reading;
+
+            // only toggle the LED if the new button state is HIGH
+            if (buttonState == HIGH) {
+                ledState = !ledState;
+            }
+        }
+    }
+  
+    // If mode on -> log data
+    if (ledState){
+        // turn on LED
+        digitalWrite(led_pin, ledState);
+        
+        currentTime = millis();
+        cloopTime = currentTime;
+
+        // Every second, make a request
+        if(currentTime >= (cloopTime + 1000))
+        {
+            cloopTime = currentTime; // Updates cloopTime
+            writeData(); 
+        }
+    }
+    else {digitalWrite(led_pin, ledState);}
+
+
+    // save the reading. Next time through the loop, it'll be the lastButtonState:
+    lastButtonState = reading;
 }
 
 void getTempReading(void){
