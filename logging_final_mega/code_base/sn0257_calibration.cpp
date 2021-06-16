@@ -1,12 +1,18 @@
 #include<Arduino.h>
 
-// SEN0257  parameter
-#define SEN0257PIN A0
+// SEN0257  parameters
+#define SEN0257PIN_1 A0
+#define SEN0257PIN_2 A1
+
+// Offset to calibrate
 const float offSet = 0.483 ;
-float voltage, pressure;
+
+float voltage1, pressure1;
+float voltage2, pressure2;
+
 
 void setup(){
-
+    Serial.begin(115200);
 }
 
 
@@ -30,18 +36,30 @@ void calibateSensor(){
     After the calibration the sensor is ready for measuring!
     **************************************************************/
     
-    voltage = analogRead(0) * 5.00 / 1024; //Sensor output voltage
-    pressure = (voltage - offSet) * 400; //Calculate water pressure
+    // Sensor 1
+    voltage1 = analogRead(0) * 5.00 / 1024; //Sensor output voltage
+    pressure1 = (voltage1 - offSet) * 400; //Calculate water pressure
+
+    // Sensor 2
+    voltage2 = analogRead(1) * 5.00 / 1024; //Sensor output voltage
+    pressure2 = (voltage2 - offSet) * 400; //Calculate water pressure
 
     // Print output
-    Serial.print("Voltage:");
-    Serial.print(voltage, 3);
+    Serial.print("Voltage Sensor 1:");
+    Serial.print(voltage1, 3);
     Serial.println("V");
-    Serial.print(" Pressure:");
-    Serial.print(pressure, 1);
+    Serial.print("Pressure Sensor 1:");
+    Serial.print(pressure1, 1);
+    Serial.println(" KPa");
+    Serial.println();
+
+    Serial.print("Voltage Sensor 2:");
+    Serial.print(voltage2, 3);
+    Serial.println("V");
+    Serial.print("Pressure Sensor 2:");
+    Serial.print(pressure2, 1);
     Serial.println(" KPa");
     Serial.println();
 
     delay(500);
-
 }
