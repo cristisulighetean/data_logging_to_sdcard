@@ -8,14 +8,16 @@
 // SEN0257 sensors parameters
 #define SEN0257PIN_1 A0
 #define SEN0257PIN_2 A1
-const float offSet = 0.483 ;
+const float offSet1 = 0.483 ;
+const float offSet2 = 0.483 ;
+
 float voltage1, voltage2; 
 float pressure1, pressure2;
 
 // SN-S201 Sensor parametes
 volatile int flow_frequency; // Measures flow sensor pulses
-unsigned int l_hour; // Calculated litres/hour
-unsigned char flowsensor = 20; // Sensor Input
+unsigned int l_min; // Calculated litres/hour
+unsigned char flowsensor = 2; // Sensor Input
 unsigned long currentTime;
 unsigned long cloopTime;
 
@@ -45,8 +47,8 @@ unsigned long debounceDelay = 50;    // the debounce time; increase if the outpu
 */
 
 // SPI MAX6675 pins
-int thermoCLK = 2;
-int thermoSO = 3;
+int thermoCLK = 13;
+int thermoSO = 12;
 
 // Chip select pins
 int thermoCS1 = 4;
@@ -257,7 +259,7 @@ void writeData(void){
     dataLogFile.println(",");
 
     // Flow data 
-    dataLogFile.print(l_hour);
+    dataLogFile.print(l_min);
     dataLogFile.println(",");
 
     // Pressure data 
@@ -285,11 +287,11 @@ void getSN025Data(void){
 
   // Sensor 1
   voltage1 = analogRead(SEN0257PIN_1) * 5.00 / 1024; //Sensor output voltage
-  pressure1 = (voltage1 - offSet) * 400; //Calculate water pressure
+  pressure1 = (voltage1 - offSet1) * 400; //Calculate water pressure
 
   // Sensor 2
   voltage2 = analogRead(SEN0257PIN_2) * 5.00 / 1024; //Sensor output voltage
-  pressure2 = (voltage2 - offSet) * 400; //Calculate water pressure
+  pressure2 = (voltage2 - offSet2) * 400; //Calculate water pressure
 
 #ifdef DEBUG 
     // Print output sensor 1
@@ -316,11 +318,11 @@ void getSN025Data(void){
 void getFlowData(void){
   
       // Pulse frequency (Hz) = 7.5Q, Q is flow rate in L/min.
-      l_hour = (flow_frequency * 60 / 7.5); // (Pulse frequency x 60 min) / 7.5Q = flowrate in L/hour
+      l_min = (flow_frequency * 60 / 7.5)/60; // (Pulse frequency x 60 min) / 7.5Q = flowrate in L/min
       flow_frequency = 0; // Reset Counter
 
 #ifdef DEBUG
-      Serial.print(l_hour, DEC); // Print litres/hour
+      Serial.print(l_min, DEC); // Print litres/min
       Serial.println(" L/hour");
 #endif
 }

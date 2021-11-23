@@ -6,7 +6,7 @@ Water Flow Sensor output processed to read in litres/hour
 */
 volatile int flow_frequency; // Measures flow sensor pulses
 unsigned int l_hour; // Calculated litres/hour
-unsigned char flowsensor = 20; // Sensor Input
+unsigned char flowsensor = 2; // Sensor Input
 unsigned long currentTime;
 unsigned long cloopTime;
 
@@ -31,13 +31,13 @@ void loop ()
 {
    currentTime = millis();
    // Every second, calculate and print litres/hour
-   if(currentTime >= (cloopTime + 1000))
+   if(currentTime >= (cloopTime + 500))
    {
       cloopTime = currentTime; // Updates cloopTime
       // Pulse frequency (Hz) = 7.5Q, Q is flow rate in L/min.
-      l_hour = (flow_frequency * 60 / 7.5); // (Pulse frequency x 60 min) / 7.5Q = flowrate in L/hour
+      l_hour = (flow_frequency * 60 / 7.5) / 60; // (Pulse frequency x 60 min) / 7.5Q = flowrate in L/hour
       flow_frequency = 0; // Reset Counter
       Serial.print(l_hour, DEC); // Print litres/hour
-      Serial.println(" L/hour");
+      Serial.println(" L/min");
    }
 }
